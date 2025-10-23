@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <img src="{{ url_for('static', filename='uploads/' ~ (product.image or 'default.png')) }}" alt="{{ product.name }}" class="product-img">
+    </div>
+  </div>
+  <div class="col-md-6">
+    <h2>{{ product.name }}</h2>
+    <p class="muted">{{ product.description }}</p>
+    <h4>₱{{ '%.2f'|format(product.price) }}</h4>
+    <p class="small-muted">Stock: {{ product.stock }}</p>
+
+    <form action="{{ url_for('cart_add', pid=product.id) }}" method="post" class="d-flex gap-2">
+      <input class="form-control form-control-sm" style="width:100px;" name="quantity" type="number" min="1" max="{{ product.stock }}" value="1">
+      <button class="btn btn-gold">Add to cart</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

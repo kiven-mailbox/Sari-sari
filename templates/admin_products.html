@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Manage Products</h2>
+<a class="btn btn-gold mb-2" href="{{ url_for('admin_add_product') }}">Add Product</a>
+
+<div class="card p-3">
+  <table class="table table-dark table-striped align-middle">
+    <thead>
+      <tr><th>ID</th><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td style="width:100px;">
+            <img src="{{ url_for('static', filename='uploads/' ~ (p.image or 'default.png')) }}" alt="" style="height:60px;width:80px;object-fit:cover;border-radius:6px;">
+          </td>
+          <td>{{ p.name }}</td>
+          <td>₱{{ "%.2f"|format(p.price) }}</td>
+          <td>{{ p.stock }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin_edit_product', pid=p.id) }}">Edit</a>
+            <form method="post" action="{{ url_for('admin_delete_product', pid=p.id) }}" style="display:inline;" onsubmit="return confirm('Delete product?');">
+              <button class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6">No products</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

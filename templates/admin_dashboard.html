@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* 🌟 Mobile-first tweaks */
+@media (max-width: 768px) {
+  h2.d-flex { flex-direction: column; align-items: flex-start !important; gap: 1rem; text-align: left; }
+  h2.d-flex div { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  h2.d-flex div a { flex: 1 1 48%; font-size: 0.9rem; }
+  .card { margin-bottom: 1rem !important; }
+  .card-body h3 { font-size: 1.4rem; }
+  canvas { max-width: 100% !important; height: auto !important; }
+  table { font-size: 0.85rem; }
+  th, td { white-space: nowrap; }
+}
+
+/* 🌙 General UI polish */
+.card { border-radius: 15px; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: scale(1.01); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+.text-gold { color: gold; }
+
+/* Canvas heights */
+#salesChart { height: 400px; }
+#topProductsChart { height: auto; min-height: 400px; }
+</style>
+
+<div class="container-fluid py-4 px-2 px-md-4">
+  <!-- HEADER -->
+  <h2 class="mb-4 text-gold fw-bold d-flex justify-content-between align-items-center flex-wrap">
+    📊 Admin Dashboard
+    <div>
+      <a href="{{ url_for('admin_products') }}" class="btn btn-warning text-dark fw-bold me-2 mb-2">➕ Add Product</a>
+      <a href="{{ url_for('admin_orders') }}" class="btn btn-info text-dark fw-bold me-2 mb-2">🕒 Pending Orders</a>
+      <a href="{{ url_for('admin_audit') }}" class="btn btn-success text-dark fw-bold mb-2">📜 View Audit</a>
+    </div>
+  </h2>
+
+  <!-- STAT CARDS -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="card text-center bg-dark text-light shadow-lg border border-warning">
+        <div class="card-body">
+          <h5 class="text-gold">Total Orders</h5>
+          <h3>{{ total_orders }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card text-center bg-dark text-light shadow-lg border border-success">
+        <div class="card-body">
+          <h5 class="text-gold">Total Sales (₱)</h5>
+          <h3>₱{{ "%.2f"|format(total_sales) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card text-center bg-dark text-light shadow-lg border border-info">
+        <div class="card-body">
+          <h5 class="text-gold">Total Products</h5>
+          <h3>{{ total_products }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES CHART -->
+  <div class="card bg-dark text-light mb-4 shadow-lg">
+    <div class="card-header text-gold fw-bold d-flex align-items-center">📈 Monthly Sales Overview</div>
+    <div class="card-body">
+      <canvas id="salesChart"></canvas>
+    </div>
+  </div>
+
+  <!-- TOP PRODUCTS -->
+  <div class="card bg-dark text-light shadow-lg mb-4">
+    <div class="card-header text-gold fw-bold">🏆 Top-Selling Products</div>
+    <div class="card-body" style="overflow-x:auto;">
+      <canvas id="topProductsChart"></canvas>
+    </div>
+  </div>
+
+  <!-- RECENT ORDERS -->
+  <div class="card bg-dark text-light shadow-lg">
+    <div class="card-header text-gold fw-bold">🧾 Recent Orders</div>
+    <div class="card-body table-responsive">
+      <table class="table table-dark table-hover align-middle">
+        <thead class="text-warning">
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Total (₱)</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.customer_name }}</td>
+            <td>
+              <span class="badge bg-{{ 'success' if order.status == 'paid' else 'warning' if order.status == 'pending' else 'secondary' }}">
+                {{ order.status.capitalize() }}
+              </span>
+            </td>
+            <td>₱{{ "%.2f"|format(order.total) }}</td>
+            <td>{{ order.created_at[:10] }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">No recent orders found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === Monthly Sales Chart ===
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: {{ months|tojson }},
+            datasets: [{
+                label: 'Sales (₱)',
+                data: {{ sales_per_month|tojson }},
+                borderColor: 'gold',
+                backgroundColor: 'rgba(255,215,0,0.2)',
+                tension: 0.3,
+                borderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: 'white' } } },
+            scales: { x: { ticks: { color: 'white' } }, y: { ticks: { color: 'white' } } }
+        }
+    });
+
+    // === Top Products Chart ===
+    let topSales = [];
+    try {
+        topSales = {{ top_sales|safe }};
+        if (!Array.isArray(topSales)) topSales = [];
+    } catch (e) {
+        topSales = [];
+        console.warn("Top sales data is invalid.", e);
+    }
+
+    if (topSales.length === 0) {
+        document.getElementById('topProductsChart').parentElement.innerHTML = "<p class='text-center text-muted'>No sales data available yet.</p>";
+        return;
+    }
+
+    const productLabels = topSales.map(p => p.name || 'Unnamed Product');
+    const productQty = topSales.map(p => parseInt(p.qty || 0));
+    const productRevenue = topSales.map(p => parseFloat(p.revenue || 0));
+
+    const topCtx = document.getElementById('topProductsChart').getContext('2d');
+    new Chart(topCtx, {
+        type: 'bar',
+        data: {
+            labels: productLabels,
+            datasets: [
+                {
+                    label: 'Quantity Sold',
+                    data: productQty,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Revenue (₱)',
+                    data: productRevenue,
+                    type: 'line',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            stacked: false,
+            plugins: { 
+                legend: { position: 'top', labels: { color: 'white' } }, 
+                title: { display: true, text: 'Top Selling Products', color: 'white' } 
+            },
+            scales: {
+                x: { ticks: { color: 'white', autoSkip: false, maxRotation: 45, minRotation: 0 }, beginAtZero: true },
+                y: { ticks: { color: 'white', autoSkip: false } },
+                y1: { 
+                    type: 'linear', display: true, position: 'right', 
+                    title: { display: true, text: 'Revenue (₱)', color: 'white' }, 
+                    grid: { drawOnChartArea: false } 
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

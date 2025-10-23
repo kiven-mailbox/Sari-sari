@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Order #{{ order.id }}</h2>
+<div class="card p-3">
+  <p>Customer: {{ order.customer_name }}</p>
+  <p>Total: ₱{{ "%.2f"|format(order.total) }}</p>
+  <p>Status: {{ order.status }}</p>
+  <h5>Items</h5>
+  <ul>
+    {% for it in items %}
+      <li>{{ it.product_name }} — qty: {{ it.quantity }} — total: ₱{{ "%.2f"|format(it.total) }}</li>
+    {% endfor %}
+  </ul>
+
+  {% if order.status != 'paid' %}
+    <form method="post" action="{{ url_for('admin_mark_paid', order_id=order.id) }}">
+      <button class="btn btn-gold">Mark as Paid</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

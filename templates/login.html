@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-3" style="max-width:480px;margin:auto;">
+  <h3>Login</h3>
+  <form method="post">
+    <input class="form-control mb-2" name="username" placeholder="Username" required>
+    <input class="form-control mb-2" name="password" placeholder="Password" type="password" required>
+    <button class="btn btn-gold w-100">Login</button>
+  </form>
+  <p class="mt-2 text-center small text-muted">
+  No account? <a href="{{ url_for('signup') }}" class="text-decoration-none text-warning fw-bold">Sign up</a>
+</p>
+
+</div>
+{% endblock %}

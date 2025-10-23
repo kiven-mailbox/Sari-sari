@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Orders</h2>
+<div class="card p-3">
+  <table class="table table-dark">
+    <thead><tr><th>ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for o in orders %}
+      <tr>
+        <td>{{ o.id }}</td>
+        <td>{{ o.customer_name or 'Guest' }}</td>
+        <td>₱{{ "%.2f"|format(o.total) }}</td>
+        <td>{{ o.status }}</td>
+        <td><a class="btn btn-sm btn-outline-light" href="{{ url_for('admin_order_detail', order_id=o.id) }}">View</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5">No orders</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

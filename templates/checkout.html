@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Checkout</h2>
+<div class="card p-3 mb-3">
+  <p>Total: <strong>₱{{ "%.2f"|format(total) }}</strong></p>
+  <form method="post">
+    <div class="mb-2">
+      <label class="form-label small">Name (for order)</label>
+      <input class="form-control" name="customer_name" value="{{ current_user.username if current_user.is_authenticated else '' }}">
+    </div>
+    <button class="btn btn-gold">Create Order & Show QR</button>
+  </form>
+</div>
+{% endblock %}

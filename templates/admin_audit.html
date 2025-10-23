@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Audit Log</h2>
+<div class="card p-3">
+  <table class="table table-dark table-sm">
+    <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Meta</th></tr></thead>
+    <tbody>
+      {% for l in logs %}
+        <tr>
+          <td>{{ l.created_at }}</td>
+          <td>{{ l.actor }}</td>
+          <td>{{ l.action }}</td>
+          <td>{{ l.meta }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4">No logs yet</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

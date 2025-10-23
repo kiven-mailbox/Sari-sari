@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-3" style="max-width:480px;margin:auto;">
+  <h3>Admin Login</h3>
+  <form method="post">
+    <input class="form-control mb-2" name="username" placeholder="Admin username" required>
+    <input class="form-control mb-2" name="password" placeholder="Password" type="password" required>
+    <button class="btn btn-gold w-100">Admin Login</button>
+  </form>
+</div>
+{% endblock %}
