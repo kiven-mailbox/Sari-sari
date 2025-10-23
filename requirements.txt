@@ -3,6 +3,6 @@ Flask-Login==0.6.2
 Flask-SQLAlchemy==3.0.3
 Werkzeug==2.3.7
 
-# Required for Deployment + CI
+# Deployment
 gunicorn==21.2.0
-pytest==8.2.0
+python-dotenv==1.0.1
